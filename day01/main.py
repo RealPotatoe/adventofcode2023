@@ -33,18 +33,22 @@ def find_first_number(line, reverse=False):
                 return int(numbers_dict[number])
 
 
-txt = "day01/input.txt"
+def main():
+    txt = "day01/input.txt"
+    part1 = 0
+    part2 = 0
 
-part1 = 0
-part2 = 0
+    with open(txt) as f:
+        for line in f:
+            digits_numeric = extract_numbers_numerical(line)
+            part1 += digits_numeric[0] * 10 + digits_numeric[-1]
 
-with open(txt) as f:
-    for line in f:
-        digits_numeric = extract_numbers_numerical(line)
-        part1 += digits_numeric[0] * 10 + digits_numeric[-1]
+            digits_spelled_out = extract_numbers_all(line)
+            part2 += digits_spelled_out[0] * 10 + digits_spelled_out[-1]
 
-        digits_spelled_out = extract_numbers_all(line)
-        part2 += digits_spelled_out[0] * 10 + digits_spelled_out[-1]
+    print("Part one:", part1)
+    print("Part two:", part2)
 
-print("Part one:", part1)
-print("Part two:", part2)
+
+if __name__ == "__main__":
+    main()
