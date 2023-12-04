@@ -1,128 +1,109 @@
-class PartNumber:
-    def __init__(self, value, row, start_col, end_col):
-        self.value = value
-        self.row = row
-        self.start_col = start_col
-        self.end_col = end_col
-        self.engine_parts = []
+class EngineSchematicAnalyzer:
+    directions = [
+        (-1, -1),  # Top-left
+        (-1, 0),  # Up
+        (-1, 1),  # Top-right
+        (0, -1),  # Left
+        (0, 1),  # Right
+        (1, -1),  # Bottom-left
+        (1, 0),  # Down
+        (1, 1),  # Bottom-right
+    ]
 
-    def adjacent(self, other: "EnginePart"):
-        if (
-            self.row == other.row
-            or self.row == other.row + 1
-            or self.row == other.row - 1
-        ) and (other.col >= self.start_col - 1 and other.col <= self.end_col + 1):
-            return True
-        return False
+    def __init__(self, schematic):
+        self.schematic = [list(line) for line in schematic.split("\n")]
+        self.processed_locations = set()
 
-    def add_engine_part(self, engine_part):
-        if engine_part not in self.engine_parts:
-            self.engine_parts.append(engine_part)
-
-    def __str__(self) -> str:
-        return f"{self.value} {self.row} {self.start_col} {self.end_col} {'Connected' if len(self.engine_parts) > 0 else 'Not connected'}"
-
-
-class EnginePart:
-    def __init__(self, symbol, row, col):
-        self.symbol = symbol
-        self.row = row
-        self.col = col
-        self.part_numbers = []
-
-    def add_part_number(self, part_number):
-        self.part_numbers.append(part_number)
-
-    def __str__(self) -> str:
-        return f"{self.symbol} {self.row} {self.col} {self.part_numbers}"
-
-
-class EngineSchematic:
-    def __init__(self, engine_schematic):
-        self.engine_schematic = engine_schematic
-        self.max_row = len(engine_schematic)
-        self.max_col = len(engine_schematic[0])
-        self.engine_parts = []
-        self.part_numbers = []
-
-    def get_data(self):
-        for row in range(self.max_row):
-            current_part_number = ""
-            for col in range(self.max_col):
-                position = self.engine_schematic[row][col]
-
-                if not position.isdigit():
-                    if current_part_number != "":
-                        self.part_numbers.append(
-                            PartNumber(
-                                int(current_part_number),
-                                row,
-                                col - len(current_part_number),
-                                col - 1,
-                            )
-                        )
-                    current_part_number = ""
-
-                    if self.is_special_symbol(position):
-                        self.engine_parts.append(EnginePart(position, row, col))
-
-                if position.isdigit():
-                    current_part_number += position
-            if current_part_number != "":
-                self.part_numbers.append(
-                    PartNumber(
-                        int(current_part_number),
-                        row,
-                        col - len(current_part_number),
-                        col - 1,
+    def calculate_sum_of_part_numbers(self):
+        total_sum = 0
+        for i, row in enumerate(self.schematic):
+            j = 0
+            while j < len(row):
+                if row[j].isdigit() and (i, j) not in self.processed_locations:
+                    part_number = self._get_full_part_number(i, j)
+                    self.processed_locations.update(
+                        (i, col_index)
+                        for col_index in range(j, j + len(str(part_number)))
                     )
-                )
 
-        for engine_part in self.engine_parts:
-            for part_number in self.part_numbers:
-                if part_number.adjacent(engine_part):
-                    engine_part.add_part_number(part_number)
-                    part_number.add_engine_part(engine_part)
+                    if any(
+                        self._is_adjacent_to_symbol(i, col_index)
+                        for col_index in range(j, j + len(str(part_number)))
+                    ):
+                        total_sum += part_number
+                    j += len(str(part_number)) - 1
+                j += 1
 
-    @staticmethod
-    def is_special_symbol(position):
-        return not position.isdigit() and position != "."
+        return total_sum
+
+    def calculate_sum_of_all_gear_ratios(self):
+        total_sum = 0
+        for i, row in enumerate(self.schematic):
+            for j, char in enumerate(row):
+                total_sum += self._get_gear_ratio(i, j) if char == "*" else 0
+
+        return total_sum
+
+    def _get_gear_ratio(self, row, col):
+        adjacent_numbers = []
+        for dx, dy in self.directions:
+            adjacent_row, adjacent_col = row + dx, col + dy
+            if 0 <= adjacent_row < len(self.schematic) and 0 <= adjacent_col < len(
+                self.schematic[adjacent_row]
+            ):
+                if self.schematic[adjacent_row][adjacent_col].isdigit():
+                    part_number = self._get_full_part_number(adjacent_row, adjacent_col)
+                    if part_number not in adjacent_numbers:
+                        adjacent_numbers.append(part_number)
+
+        if len(adjacent_numbers) == 2:
+            return adjacent_numbers[0] * adjacent_numbers[1]
+        return 0
+
+    def _get_full_part_number(self, row, col):
+        # start with the digit at (row, col)
+        number_str = self.schematic[row][col]
+
+        # fan out to the left
+        left_col = col - 1
+        while left_col >= 0 and self.schematic[row][left_col].isdigit():
+            number_str = self.schematic[row][left_col] + number_str
+            left_col -= 1
+
+        # fan out to the right
+        right_col = col + 1
+        while (
+            right_col < len(self.schematic[row])
+            and self.schematic[row][right_col].isdigit()
+        ):
+            number_str += self.schematic[row][right_col]
+            right_col += 1
+
+        return int(number_str)
+
+    def _is_valid_symbol(self, char):
+        return not (char.isdigit() or char == ".")
+
+    def _is_adjacent_to_symbol(self, row, col):
+        for dx, dy in self.directions:
+            if 0 <= row + dx < len(self.schematic) and 0 <= col + dy < len(
+                self.schematic[row + dx]
+            ):
+                if self._is_valid_symbol(self.schematic[row + dx][col + dy]):
+                    return True
+        return False
 
 
 def main():
-    engine_schematic = []
-    "day03/input.txt"
-    with open("./day03/input.txt") as f:
-        for line in f:
-            engine_schematic.append(line.strip())
+    with open("day03/input.txt") as file:
+        engine_schematic = file.read()
 
-    # engine_schematic = [
-    #     "467..114..",
-    #     "...*......",
-    #     "..35..633.",
-    #     "......#...",
-    #     "617*......",
-    #     ".....+.58.",
-    #     "..592.....",
-    #     "......755.",
-    #     "...$.*....",
-    #     ".664.598..",
-    # ]
+    analyzer = EngineSchematicAnalyzer(engine_schematic)
+    total_sum = analyzer.calculate_sum_of_part_numbers()
+    print(f"Sum of part numbers is {total_sum}")
 
-    sum_of_part_numbers = 0
-
-    engine_schematic = EngineSchematic(engine_schematic)
-
-    engine_schematic.get_data()
-
-    for part_number in engine_schematic.part_numbers:
-        print(part_number)
-
-    for part_number in engine_schematic.part_numbers:
-        if len(part_number.engine_parts) >= 1:
-            sum_of_part_numbers += part_number.value
-
-    print("Part one:", sum_of_part_numbers)
+    total_sum = analyzer.calculate_sum_of_all_gear_ratios()
+    print(f"Sum of all gear ratios is {total_sum}")
 
 
 if __name__ == "__main__":
