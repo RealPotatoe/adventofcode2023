@@ -99,11 +99,11 @@ def main():
         engine_schematic = file.read()
 
     analyzer = EngineSchematicAnalyzer(engine_schematic)
-    total_sum = analyzer.calculate_sum_of_part_numbers()
-    print(f"Sum of part numbers is {total_sum}")
+    sum_of_part_numbers = analyzer.calculate_sum_of_part_numbers()
+    print("Part one", sum_of_part_numbers)
 
-    total_sum = analyzer.calculate_sum_of_all_gear_ratios()
-    print(f"Sum of all gear ratios is {total_sum}")
+    sum_of_gear_ratios = analyzer.calculate_sum_of_all_gear_ratios()
+    print("Part two", sum_of_gear_ratios)
 
 
 if __name__ == "__main__":
