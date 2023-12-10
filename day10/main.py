@@ -44,8 +44,8 @@ def create_graph(map_data: List[str]) -> Tuple[Dict[Tuple[int, int], Node], Node
             for dx, dy in directions[value]:
                 new_x, new_y = x + dx, y + dy
                 if (
-                    0 <= new_x < rows
-                    and 0 <= new_y < cols
+                    0 <= new_x <= rows
+                    and 0 <= new_y <= cols
                     and map_data[new_y][new_x] != "."
                 ):
                     node.neighbors.append(graph[(new_x, new_y)])
