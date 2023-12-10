@@ -1,4 +1,4 @@
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
 
 class Node:
@@ -62,7 +62,7 @@ def create_graph(map_data: List[str]) -> Tuple[Dict[Tuple[int, int], Node], Node
     return graph, start
 
 
-def find_furthest_node(start_node):
+def find_furthest_node(start_node: Node):
     visited = set()
     queue = [(start_node, 0)]
     max_steps = 0
@@ -80,18 +80,39 @@ def find_furthest_node(start_node):
 
 
 def main():
-    with open("day10/input.txt") as f:
+    with open("day10/test_input.txt") as f:
         input_data = f.read().splitlines()
 
     graph, start_node = create_graph(input_data)
 
-    # print("Graph:")
-    # for node in graph.values():
-    #     print(f"{node} -> {node.neighbors}")
+    print("Graph:")
+    for node in graph.values():
+        print(f"{node} -> {node.neighbors}")
     print("Start node:", start_node)
 
     max_steps = find_furthest_node(start_node)
     print("Part one:", max_steps)
+
+    # Part two: Get number of tiles that are enclosed by the loop. (The path of start_node is guaranteed to be a loop.)
+
+    graph, start_node = create_graph(input_data)
+    my_map: List[List[str]] = [
+        ["."] * len(input_data[0]) for _ in range(len(input_data))
+    ]
+
+    visited = set()
+    queue = [start_node]
+    while queue:
+        node = queue.pop(0)
+        if node in visited:
+            continue
+        visited.add(node)
+        my_map[node.y][node.x] = "*"
+        for neighbor in node.neighbors:
+            queue.append(neighbor)
+
+    for row in my_map:
+        print("".join(row))
 
 
 if __name__ == "__main__":
