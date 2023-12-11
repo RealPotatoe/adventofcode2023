@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List, Tuple
 
 
@@ -85,19 +86,18 @@ def main():
 
     graph, start_node = create_graph(input_data)
 
-    print("Graph:")
-    for node in graph.values():
-        print(f"{node} -> {node.neighbors}")
-    print("Start node:", start_node)
+    # print("Graph:")
+    # for node in graph.values():
+    #     print(f"{node} -> {node.neighbors}")
+    # print("Start node:", start_node)
 
     max_steps = find_furthest_node(start_node)
     print("Part one:", max_steps)
 
     # Part two: Get number of tiles that are enclosed by the loop. (The path of start_node is guaranteed to be a loop.)
 
-    graph, start_node = create_graph(input_data)
     my_map: List[List[str]] = [
-        ["."] * len(input_data[0]) for _ in range(len(input_data))
+        ["."] * (len(input_data[0]) + 2) for _ in range(len(input_data) + 2)
     ]
 
     visited = set()
@@ -107,12 +107,37 @@ def main():
         if node in visited:
             continue
         visited.add(node)
-        my_map[node.y][node.x] = "*"
+        my_map[node.y + 1][node.x + 1] = node.value
         for neighbor in node.neighbors:
             queue.append(neighbor)
 
     for row in my_map:
         print("".join(row))
+
+    tiles_enclosed = 0
+    tiles_outside = 0
+
+    for y, row in enumerate(my_map):
+        inside = False
+        last_tiles = ""
+        for x, tile in enumerate(row):
+            if tile == ".":
+                last_tiles = ""
+                if inside:
+                    tiles_enclosed += 1
+                    # print(f"({x}, {y})")
+                else:
+                    tiles_outside += 1
+            else:
+                last_tiles += tile
+
+                if re.match(r".*[SFL].*[S7J].*", last_tiles):
+                    # print(f"({x}, {y})")
+                    pass
+                elif re.match(r".*[SFL].*", last_tiles):
+                    inside = not inside
+
+    print("Part two:", tiles_enclosed)
 
 
 if __name__ == "__main__":
