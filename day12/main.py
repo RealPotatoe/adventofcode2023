@@ -5,7 +5,7 @@ from typing import List
 
 def count_valid_patterns(springs: List[str], contiguous_broken: List[int]):
     @cache
-    def dp(pos: int, broken_idx: int, result: int = 0) -> int:
+    def dp(pos: int, broken_idx: int, result=0) -> int:
         # We have reached the end of the springs.
         if pos >= len(springs):
             # If we have also reached the end of the contiguous broken list,
@@ -19,7 +19,8 @@ def count_valid_patterns(springs: List[str], contiguous_broken: List[int]):
         if springs[pos] in ".?":
             result += dp(pos + 1, broken_idx)
 
-        # When we went through all the contiguous broken springs, we can return the result.
+        # If we get here, we have landed on a broken spring.
+        # When we went through all the contiguous broken springs, we can return the result without incrementing the result.
         if broken_idx == len(contiguous_broken):
             return result
 
@@ -28,10 +29,8 @@ def count_valid_patterns(springs: List[str], contiguous_broken: List[int]):
         # If we can, we continue with the next spring after the contiguous broken springs.
         if (
             springs[pos] in "#?"
-            and (
-                pos + contiguous_broken[broken_idx] <= len(springs)
-                and "." not in springs[pos : pos + contiguous_broken[broken_idx]]
-            )
+            and pos + contiguous_broken[broken_idx] <= len(springs)
+            and "." not in springs[pos : pos + contiguous_broken[broken_idx]]
             and (
                 pos + contiguous_broken[broken_idx] == len(springs)
                 or "#" not in [springs[pos + contiguous_broken[broken_idx]]]
