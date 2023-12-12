@@ -10,7 +10,9 @@ def count_valid_patterns(springs: List[str], contiguous_broken: List[int]):
         if pos >= len(springs):
             # If we have also reached the end of the contiguous broken list,
             # then we have found a valid pattern. Otherwise, we have not.
-            return broken_idx == len(contiguous_broken)
+            return broken_idx == len(
+                contiguous_broken
+            )  # -> returns True(1) or False(0)
 
         # Fork A: Continue with the next spring.
         # If we land on a workign or unknown spring, we can continue to the next spring.
