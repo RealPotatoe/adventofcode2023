@@ -52,6 +52,33 @@ def get_sum_of_distances(galaxies: List[Tuple[int, int]]) -> int:
     return sum_of_distances
 
 
+def get_sum_of_simulated_distances(space: List[List[str]], steps: int) -> int:
+    galaxies = [
+        (x, y)
+        for x in range(len(space))
+        for y in range(len(space[0]))
+        if space[x][y] == "#"
+    ]
+
+    simulated_galaxies = galaxies.copy()
+
+    for row_num, row in enumerate(space):
+        if "#" in row:
+            continue
+        for galaxy, simulated_galaxy in zip(galaxies, simulated_galaxies):
+            if galaxy[1] > row_num:
+                simulated_galaxiy = (simulated_galaxy[0], simulated_galaxy[1] + steps)
+
+    for col_num, col in enumerate(zip(*space)):
+        if "#" in col:
+            continue
+        for galaxy, simulated_galaxy in zip(galaxies, simulated_galaxies):
+            if galaxy[0] > col_num:
+                simulated_galaxiy = (simulated_galaxy[0] + steps, simulated_galaxy[1])
+
+    return get_sum_of_distances(simulated_galaxies)
+
+
 def main():
     input_file = [
         "...#......",
@@ -85,16 +112,16 @@ def main():
     sum_of_distances = get_sum_of_distances(galaxies)
     print("Part one:", sum_of_distances)
 
-    older_expanded_space = expand_empty_spaces(space, 1000)
+    # older_expanded_space = expand_empty_spaces(space, 1000000)
 
     galaxies = [
         (x, y)
-        for x in range(len(older_expanded_space))
-        for y in range(len(older_expanded_space[0]))
-        if older_expanded_space[x][y] == "#"
+        for x in range(len(space))
+        for y in range(len(space[0]))
+        if space[x][y] == "#"
     ]
 
-    sum_of_distances = get_sum_of_distances(galaxies)
+    sum_of_distances = get_sum_of_simulated_distances(galaxies, 1000000)
     print("Part two:", sum_of_distances)
 
 
